@@ -25,7 +25,7 @@ The final ranking is based on **Macro F1-score** on a hidden test set.
 
 ---
 
-📊 Dataset Details
+## 📊 Dataset Details
 
 ⚠️ Note on Dataset Difficulty (Important)
 

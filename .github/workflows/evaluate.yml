@@ -44,7 +44,7 @@ jobs:
         run: |
           for file in submission/*.csv; do
             echo "Evaluating $file..."
-            python evaluate.py "$file" "private_data/test_labels.csv"
+            python evaluate.py "$file" "private_data/test_labels_only_gnn.csv"
           done
       # 8️⃣ Clean up before committing (remove untracked files we don't want)
       - name: Clean untracked files

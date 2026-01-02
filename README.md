@@ -131,8 +131,7 @@ id,target
 
 Submissions are evaluated using:
 
-* **Macro F1-score** (primary metric)
-* Accuracy (secondary metric)
+* **Accuracy** (primary metric)
 
 Evaluation is performed on a **hidden test set** to prevent data leakage.
 

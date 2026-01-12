@@ -192,7 +192,8 @@ This competition is intended for **educational and research purposes**.
 * Kipf, T. N., & Welling, M. (2017). *Semi-Supervised Classification with Graph Convolutional Networks*. ICLR.
   
 - **GNNs Tutorials (YouTube) – BASIRA Lab**:  
-  https://www.youtube.com/@BASIRALab
+  [https://www.youtube.com/@BASIRALab](https://www.youtube.com/playlist?list=PLug43ldmRSo14Y_vt7S6vanPGh-JpHR7T)
+  
 
 - **GNN Tutorials (GitHub) – BASIRA Lab**:  
   https://github.com/basiralab

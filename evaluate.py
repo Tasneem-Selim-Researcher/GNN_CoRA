@@ -2,7 +2,7 @@ import pandas as pd
 import sys
 from sklearn.metrics import accuracy_score
 import os
-from datetime import datetime
+#from datetime import datetime
 
 # Arguments
 if len(sys.argv) < 3:
@@ -26,12 +26,12 @@ print(f"Accuracy for {team_name}: {acc*100:.2f}%")
 
 # Update single leaderboard CSV
 leaderboard_file = "final_leaderboard.csv"
-current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+#current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 new_entry = {
     'Team': team_name,
     'Accuracy': acc*100,
-    'Datetime': current_datetime  # NEW
+    #'Datetime': current_datetime  # NEW
 }
 
 # Read existing leaderboard or create new

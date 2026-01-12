@@ -2,6 +2,7 @@ import pandas as pd
 import sys
 from sklearn.metrics import accuracy_score
 import os
+from datetime import datetime
 
 # Arguments
 if len(sys.argv) < 3:

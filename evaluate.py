@@ -38,7 +38,7 @@ new_entry = {
 if os.path.exists(leaderboard_file):
     leaderboard = pd.read_csv(leaderboard_file)
     # Remove existing entry for this team
-    leaderboard = leaderboard[leaderboard['Team'] != team_name]
+    # leaderboard = leaderboard[leaderboard['Team'] != team_name]
 else:
     leaderboard = pd.DataFrame(columns=['Team', 'Accuracy'])
 

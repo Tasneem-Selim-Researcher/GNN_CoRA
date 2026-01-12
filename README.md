@@ -6,7 +6,10 @@ This repository hosts the **Cora Node Classification Challenge**, a graph machin
 
 The competition follows **standard academic evaluation protocols** used in benchmark GNN literature (e.g., Kipf & Welling, 2017).
 
-View Live Leaderboard https://tasneem-selim-researcher.github.io/GNN_CoRA_Competition//leaderboard/leaderboard.html
+## 🏆 Leaderboard
+
+Click here to view the live leaderboard:  
+👉 **[Leaderboard](https://tasneem-selim-researcher.github.io/GNN_CoRA_Competition/leaderboard/leaderboard.html)**
 
 ---
 

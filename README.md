@@ -218,10 +218,6 @@ Participants are encouraged to improve upon this baseline using:
 
 This competition is intended for **educational and research purposes**.
 
-* Plagiarism is not allowed
-* External pretrained models using Cora labels are prohibited
-
-
 ---
 
 ## 📚 References

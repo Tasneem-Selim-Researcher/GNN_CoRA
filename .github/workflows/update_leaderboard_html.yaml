@@ -1,0 +1,45 @@
+name: Update Leaderboard HTML
+
+on:
+  push:
+    paths:
+      - "final_leaderboard.csv"   # Trigger only when the CSV changes
+
+permissions:
+  contents: write
+
+jobs:
+  update-html:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout the repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2️⃣ Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      # 3️⃣ Install dependencies
+      - name: Install dependencies
+        run: pip install pandas
+
+      # 4️⃣ Generate HTML leaderboard
+      - name: Generate leaderboard HTML
+        run: |
+          python generate_leaderboard_html.py
+
+      # 5️⃣ Commit and push HTML
+      - name: Commit and push leaderboard HTML
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add final_leaderboard.html
+          git diff --cached --quiet || git commit -m "Auto-update leaderboard HTML from CSV"
+          git pull origin main --rebase
+          git push origin main

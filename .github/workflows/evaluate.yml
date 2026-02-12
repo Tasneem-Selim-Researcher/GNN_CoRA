@@ -1,60 +1,46 @@
 name: Evaluate Submission
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize]
     paths:
-      - 'submission/*.csv'
+      - "submission/*.csv"
+
+permissions:
+  contents: write
 
 jobs:
   evaluate:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      
+
     steps:
-      # 1️⃣ Checkout PR branch of public repo
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      # 2️⃣ Checkout private repo (contains true labels)
-      - name: Checkout private repo
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - run: pip install pandas scikit-learn numpy
+
+      - name: Evaluate
+        run: |
+          FILE=$(ls submission/*.csv | head -n 1)
+          python competition/evaluate.py "$FILE"
+
+      - name: Checkout main
         uses: actions/checkout@v4
         with:
-          repository: Tasneem-Selim-Researcher/GNN_CoRA_Competition_private
-          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
-          path: private_data
+          ref: main
+          fetch-depth: 0
 
-      # 3️⃣ Setup Python
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      # 4️⃣ Install dependencies
-      - name: Install dependencies
-        run: pip install pandas scikit-learn numpy
-
-      # 5️⃣ Evaluate submission
-      - name: Evaluate submission
+      - name: Commit leaderboard update
         run: |
-          FILE=$(ls submission/*.csv)
-          echo "Evaluating $FILE..."
-          python evaluate.py "$FILE" "private_data/test_labels_only.csv"
-
-      # 6️⃣ Remove private data before commit
-      - name: Clean private data
-        run: rm -rf private_data/
-
-      # 7️⃣ Commit updated leaderboard
-      - name: Commit leaderboard
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add final_leaderboard.csv
-          git diff --cached --quiet || git commit -m "Update leaderboard from PR #${{ github.event.pull_request.number }} [Automated]"
-          git push origin main
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add leaderboard/leaderboard.csv
+          git commit -m "Update leaderboard from PR #${{ github.event.pull_request.number }}" || echo "No changes"
+          git push

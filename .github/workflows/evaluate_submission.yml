@@ -15,13 +15,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout PR branch (submission file)
+      # 1️⃣ Debug trigger
+      - name: Debug
+        run: echo "Triggered for PR #${{ github.event.pull_request.number }}"
+
+      # 2️⃣ Checkout PR branch (submission file)
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
-      # 2️⃣ Checkout private repo (true labels)
+      # 3️⃣ Checkout private repo (true labels)
       - name: Checkout private repo
         uses: actions/checkout@v4
         with:
@@ -29,41 +34,38 @@ jobs:
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}
           path: private_data
 
-      # 3️⃣ Setup Python
+      # 4️⃣ Setup Python
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - run: pip install pandas scikit-learn numpy
+      - name: Install dependencies
+        run: pip install pandas scikit-learn numpy
 
-      # 4️⃣ Evaluate submission
-      - name: Evaluate
+      # 5️⃣ Run evaluation
+      - name: Evaluate submission
         run: |
           FILE=$(ls submission/*.csv | head -n 1)
           echo "Evaluating $FILE"
           python evaluate.py "$FILE" "private_data/test_labels_only.csv"
 
-      # 5️⃣ Save updated leaderboard temporarily
-      - name: Save leaderboard
-        run: cp final_leaderboard.csv /tmp/final_leaderboard.csv
-
-      # 6️⃣ Checkout main branch
-      - name: Checkout main
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-
-      # 7️⃣ Restore leaderboard into main
-      - name: Restore leaderboard
-        run: cp /tmp/final_leaderboard.csv final_leaderboard.csv
-
-      # 8️⃣ Commit and push leaderboard
-      - name: Commit leaderboard
+      # 6️⃣ Push updated leaderboard to main branch
+      - name: Push leaderboard to main
         run: |
+          # Save updated leaderboard
+          cp final_leaderboard.csv /tmp/final_leaderboard.csv
+
+          # Clone main branch fresh
+          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} main_repo
+          cd main_repo
+
+          # Replace leaderboard file
+          cp /tmp/final_leaderboard.csv final_leaderboard.csv
+
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+
           git add final_leaderboard.csv
           git diff --cached --quiet || git commit -m "Update leaderboard from PR #${{ github.event.pull_request.number }}"
           git push origin main

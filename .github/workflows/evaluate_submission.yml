@@ -29,7 +29,7 @@ jobs:
       - name: Evaluate
         run: |
           FILE=$(ls submission/*.csv | head -n 1)
-          python competition/evaluate.py "$FILE"
+          python evaluate.py "$FILE"
 
       - name: Checkout main
         uses: actions/checkout@v4

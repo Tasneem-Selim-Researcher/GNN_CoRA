@@ -1,27 +1,27 @@
 name: Evaluate Submission
 
 on:
-  push:
-      paths:
-        - 'submission/*.csv'  # Trigger only on submission CSVs
+  pull_request_target:
+    types: [opened, synchronize]
+    paths:
+      - 'submission/*.csv'
 
 jobs:
   evaluate:
     runs-on: ubuntu-latest
     permissions:
-          contents: write
-          pull-requests: write
+      contents: write
+      pull-requests: write
       
     steps:
-      # 1️⃣ Checkout the PR branch of the public repo
-      - name: Checkout public repo
+      # 1️⃣ Checkout PR branch of public repo
+      - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-
-      # 2️⃣ Checkout private repo (contains test_labels.csv)
+      # 2️⃣ Checkout private repo (contains true labels)
       - name: Checkout private repo
         uses: actions/checkout@v4
         with:
@@ -39,33 +39,22 @@ jobs:
       - name: Install dependencies
         run: pip install pandas scikit-learn numpy
 
-      # 5️⃣ Evaluate all submissions
-      - name: Evaluate submissions
+      # 5️⃣ Evaluate submission
+      - name: Evaluate submission
         run: |
-            for file in submission/*.csv; do
-               echo "Evaluating $file..."
-               python evaluate.py "$file" "private_data/test_labels_only.csv"
-            done
-        
-    
+          FILE=$(ls submission/*.csv)
+          echo "Evaluating $FILE..."
+          python evaluate.py "$FILE" "private_data/test_labels_only.csv"
 
-      # 8️⃣ Clean up before committing (remove untracked files we don't want)
-      - name: Clean untracked files
-        run: |
-          echo "=== Cleaning untracked files ==="
-          # Remove the directories/files we don't want to track
-          rm -rf private_data/ 
-          echo "Remaining files:"
-          ls -la
-      
-      # 6️⃣ Commit and push updated leaderboard (results.csv) to main branch
-      # 7️⃣ Commit all result files (leaderboard + individual team results)
-      - name: Commit all results
+      # 6️⃣ Remove private data before commit
+      - name: Clean private data
+        run: rm -rf private_data/
+
+      # 7️⃣ Commit updated leaderboard
+      - name: Commit leaderboard
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add final_leaderboard.csv 
-          git commit -m "Update leaderboard and team results from PR #${{ github.event.number }} [Automated]"
+          git add final_leaderboard.csv
+          git diff --cached --quiet || git commit -m "Update leaderboard from PR #${{ github.event.pull_request.number }} [Automated]"
           git push origin main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

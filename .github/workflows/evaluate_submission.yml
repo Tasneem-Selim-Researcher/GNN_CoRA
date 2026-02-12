@@ -15,13 +15,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout PR branch
+      # 1️⃣ Checkout PR branch (submission file)
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      # 2️⃣ Setup Python
+      # 2️⃣ Checkout private repo (true labels)
+      - name: Checkout private repo
+        uses: actions/checkout@v4
+        with:
+          repository: Tasneem-Selim-Researcher/GNN_CoRA_Competition_private
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          path: private_data
+
+      # 3️⃣ Setup Python
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -29,30 +37,30 @@ jobs:
 
       - run: pip install pandas scikit-learn numpy
 
-      # 3️⃣ Run evaluation
-      - name: Evaluate submission
+      # 4️⃣ Evaluate submission
+      - name: Evaluate
         run: |
           FILE=$(ls submission/*.csv | head -n 1)
           echo "Evaluating $FILE"
-          python evaluate.py "$FILE"
+          python evaluate.py "$FILE" "private_data/test_labels_only.csv"
 
-      # 4️⃣ Save updated leaderboard temporarily
+      # 5️⃣ Save updated leaderboard temporarily
       - name: Save leaderboard
         run: cp final_leaderboard.csv /tmp/final_leaderboard.csv
 
-      # 5️⃣ Checkout main branch
+      # 6️⃣ Checkout main branch
       - name: Checkout main
         uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
 
-      # 6️⃣ Restore updated leaderboard into main
+      # 7️⃣ Restore leaderboard into main
       - name: Restore leaderboard
         run: cp /tmp/final_leaderboard.csv final_leaderboard.csv
 
-      # 7️⃣ Commit & push leaderboard
-      - name: Commit leaderboard update
+      # 8️⃣ Commit and push leaderboard
+      - name: Commit leaderboard
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"

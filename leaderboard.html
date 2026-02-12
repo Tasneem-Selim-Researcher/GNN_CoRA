@@ -87,24 +87,47 @@ fetch('final_leaderboard.csv')
 
         const tbody = document.querySelector('#leaderboard tbody');
 
-        data.forEach((entry, index) => {
-            let rankDisplay = index + 1;
-            let className = '';
+        // Sort descending by accuracy (important!)
+data.sort((a, b) => b.accuracy - a.accuracy);
 
-            if (index === 0) { rankDisplay = "1 🥇"; className = "gold"; }
-            else if (index === 1) { rankDisplay = "2 🥈"; className = "silver"; }
-            else if (index === 2) { rankDisplay = "3 🥉"; className = "bronze"; }
+let currentRank = 0;
+let previousScore = null;
+let skipRank = 0;
 
-            const tr = document.createElement('tr');
-            if (className) tr.classList.add(className);
+data.forEach((entry, index) => {
+    if (previousScore === null || entry.accuracy < previousScore) {
+        currentRank = index + 1;
+    }
 
-            tr.innerHTML = `
-                <td>${rankDisplay}</td>
-                <td>${entry.team}</td>
-                <td>${entry.accuracy.toFixed(2)}%</td>
-            `;
-            tbody.appendChild(tr);
-        });
+    previousScore = entry.accuracy;
+
+    let rankDisplay = currentRank;
+    let className = '';
+
+    if (currentRank === 1) {
+        rankDisplay = currentRank + " 🥇";
+        className = "gold";
+    } 
+    else if (currentRank === 2) {
+        rankDisplay = currentRank + " 🥈";
+        className = "silver";
+    } 
+    else if (currentRank === 3) {
+        rankDisplay = currentRank + " 🥉";
+        className = "bronze";
+    }
+
+    const tr = document.createElement('tr');
+    if (className) tr.classList.add(className);
+
+    tr.innerHTML = `
+        <td>${rankDisplay}</td>
+        <td>${entry.team}</td>
+        <td>${entry.accuracy.toFixed(2)}%</td>
+    `;
+
+    tbody.appendChild(tr);
+});
     })
     .catch(err => console.error('Error loading leaderboard:', err));
 </script>

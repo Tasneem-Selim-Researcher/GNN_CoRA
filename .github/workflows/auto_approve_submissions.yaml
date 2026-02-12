@@ -1,79 +1,76 @@
-name: Auto-Approve Submissions
+name: Evaluate Submission (No Merge)
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize]
     paths:
-      - 'submission/*.csv' 
+      - "submission/*.csv"
 
 permissions:
-  pull-requests: write
   contents: write
+  pull-requests: write
 
 jobs:
-  auto-approve:
+  evaluate:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      # 1️⃣ Checkout PR branch (submission branch)
+      - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Check if PR only adds files to submission folder
-        id: check_changes
-        run: |
-          # Get changed files
-          git fetch origin ${{ github.event.pull_request.base.ref }}
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD)
-          
-          # Check if all changes are in submission/ folder and are additions/modifications only
-          VALID=true
-          while IFS= read -r file; do
-            if [[ ! "$file" =~ ^submission/ ]]; then
-              VALID=false
-            fi
-          done <<< "$CHANGED_FILES"
-          
-          # Check for deletions (we don't want to auto-approve deletions)
-          DELETED=$(git diff --diff-filter=D --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD)
-          if [ ! -z "$DELETED" ]; then
-            VALID=false
-          fi
-      
-      - name: Approve PR
-        if: steps.check_changes.outputs.valid == 'true'
-        uses: hmarr/auto-approve-action@v3
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      # 2️⃣ Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-      
-      # - name: Enable auto-merge
-      #   if: steps.check_changes.outputs.valid == 'true'
-      #   run: |
-      #     gh pr merge ${{ github.event.pull_request.number }} --auto --squash
-      #   env:
-      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          python-version: "3.10"
 
-      - name: Fetch PR branch
-        if: steps.check_changes.outputs.valid == 'true'
-        run: |
-          # Fetch the PR branch and create a local branch
-          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-${{ github.event.pull_request.number }}
-          git checkout pr-${{ github.event.pull_request.number }}
+      - run: pip install pandas scikit-learn numpy
 
-      - name: Score submission
-        if: steps.check_changes.outputs.valid == 'true'
-        run: |
-            # Get the CSV file in submission folder
-            FILE=$(ls submission/*.csv)
-            python evaluate.py "$FILE"
+      # 3️⃣ Checkout private test labels
+      - name: Checkout private repo
+        uses: actions/checkout@v4
+        with:
+          repository: Tasneem-Selim-Researcher/GNN_CoRA_Competition_private
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          path: private_data
 
-      - name: Update public leaderboard
-        if: steps.check_changes.outputs.valid == 'true'
+      # 4️⃣ Evaluate submission
+      - name: Evaluate submission
         run: |
-              git clone https://x-access-token:${{ secrets.PUBLIC_REPO_TOKEN }}@github.com/Tasneem-Selim-Researcher/cora-competition-leaderboard.gitcp submission/*.csv cora-competition-leaderboard/
-              cd cora-competition-leaderboard
-              git config user.name "github-actions"
-              git config user.email "actions@github.com"
-              git add .
-              git commit -m "Update leaderboard"
-              git push
+          FILE=$(ls submission/*.csv | head -n 1)
+          echo "Evaluating $FILE"
+          python competition/evaluate.py "$FILE" "private_data/test_labels_only.csv"
+
+      # 5️⃣ Switch to main branch
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      # 6️⃣ Commit updated leaderboard
+      - name: Commit leaderboard update
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add final_leaderboard.csv
+          git commit -m "Update leaderboard from PR #${{ github.event.pull_request.number }}" || echo "No changes"
+          git push origin main
+
+      # 7️⃣ Optional: Comment score on PR
+      - name: Comment PR with score
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const leaderboard = fs.readFileSync('final_leaderboard.csv', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.payload.pull_request.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "✅ Submission evaluated successfully!\n\nLeaderboard updated."
+            });

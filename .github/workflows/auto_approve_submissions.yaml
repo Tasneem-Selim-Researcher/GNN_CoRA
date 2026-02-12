@@ -59,3 +59,21 @@ jobs:
           # Fetch the PR branch and create a local branch
           git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-${{ github.event.pull_request.number }}
           git checkout pr-${{ github.event.pull_request.number }}
+
+      - name: Score submission
+        if: steps.check_changes.outputs.valid == 'true'
+        run: |
+            # Get the CSV file in submission folder
+            FILE=$(ls submission/*.csv)
+            python evaluate.py "$FILE"
+
+      - name: Update public leaderboard
+        if: steps.check_changes.outputs.valid == 'true'
+        run: |
+              git clone https://x-access-token:${{ secrets.PUBLIC_REPO_TOKEN }}@github.com/Tasneem-Selim-Researcher/cora-competition-leaderboard.gitcp submission/*.csv cora-competition-leaderboard/
+              cd cora-competition-leaderboard
+              git config user.name "github-actions"
+              git config user.email "actions@github.com"
+              git add .
+              git commit -m "Update leaderboard"
+              git push

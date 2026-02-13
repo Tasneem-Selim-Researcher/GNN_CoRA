@@ -7,37 +7,36 @@ df = pd.read_csv(leaderboard_file)
 # Sort by accuracy descending
 df = df.sort_values(by="Accuracy", ascending=False).reset_index(drop=True)
 
-# Compute ranks with ties
+# Compute ranks with ties (Kaggle-style: tied teams share rank, next rank skips)
 ranks = []
 prev_score = None
 prev_rank = 0
-skip_count = 0
+count = 0  # number of previous teams
 
-for i, score in enumerate(df["Accuracy"], start=1):
+for score in df["Accuracy"]:
+    count += 1
     if score == prev_score:
         rank = prev_rank
-        skip_count += 1
     else:
-        rank = prev_rank + 1 + skip_count
-        skip_count = 0
+        rank = count
     ranks.append(rank)
     prev_score = score
     prev_rank = rank
 
 df["Rank"] = ranks
 
-# Assign medal classes
-def medal_class(rank):
+# Map medals for ranks 1, 2, 3
+def medal_by_rank(rank):
     if rank == 1:
-        return "gold"
+        return "gold", "🥇"
     elif rank == 2:
-        return "silver"
+        return "silver", "🥈"
     elif rank == 3:
-        return "bronze"
+        return "bronze", "🥉"
     else:
-        return ""
+        return "", ""
 
-df["Class"] = df["Rank"].apply(medal_class)
+df[["Class", "Medal"]] = df["Rank"].apply(lambda r: pd.Series(medal_by_rank(r)))
 
 # Generate HTML
 html_content = """
@@ -47,15 +46,16 @@ html_content = """
 <meta charset="UTF-8">
 <title>GNN CoRA Competition Leaderboard</title>
 <style>
-body {{ font-family: Arial, sans-serif; background: #f9f9f9; padding: 40px; }}
-h1 {{ text-align: center; margin-bottom: 30px; }}
-table {{ border-collapse: collapse; margin: auto; width: 60%; background: white; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }}
-th, td {{ border: 1px solid #ddd; padding: 12px; text-align: center; }}
-th {{ background-color: #2c3e50; color: white; }}
-tr:nth-child(even) {{ background-color: #f2f2f2; }}
-.gold {{ background-color: #FFD700; color: black; font-weight: bold; }}
-.silver {{ background-color: #C0C0C0; color: black; font-weight: bold; }}
-.bronze {{ background-color: #CD7F32; color: black; font-weight: bold; }}
+body {{ font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 60px 0; }}
+h1 {{ text-align: center; margin-bottom: 40px; }}
+table {{ border-collapse: collapse; width: 66%; margin: 0 auto; background: white; box-shadow: 0 8px 20px rgba(0,0,0,0.08); border-radius: 10px; overflow: hidden; }}
+th, td {{ padding: 16px; text-align: center; }}
+th {{ background-color: #2c3e50; color: white; font-size: 16px; }}
+tr:nth-child(even) {{ background-color: #f8f9fa; }}
+td:first-child {{ font-weight: bold; font-size: 18px; }}
+.gold {{ background-color: #FFD700; font-weight: bold; }}
+.silver {{ background-color: #C0C0C0; font-weight: bold; }}
+.bronze {{ background-color: #CD7F32; color: white; font-weight: bold; }}
 @media (max-width: 768px) {{ table {{ width: 90%; }} }}
 </style>
 </head>
@@ -69,7 +69,7 @@ tr:nth-child(even) {{ background-color: #f2f2f2; }}
 """
 
 for _, row in df.iterrows():
-    rank_display = row["Rank"]
+    rank_display = f"{row['Medal']} {row['Rank']}" if row['Medal'] else row['Rank']
     team = row["Team"]
     acc = f"{row['Accuracy']:.2f}%"
     class_name = row["Class"]
@@ -83,7 +83,7 @@ html_content += """
 """
 
 # Save HTML
-with open("final_leaderboard.html", "w") as f:
+with open("final_leaderboard.html", "w", encoding="utf-8") as f:
     f.write(html_content)
 
 print("Leaderboard HTML updated successfully.")

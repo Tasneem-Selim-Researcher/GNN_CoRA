@@ -39,6 +39,7 @@ def medal_by_rank(rank):
 df[["Class", "Medal"]] = df["Rank"].apply(lambda r: pd.Series(medal_by_rank(r)))
 
 # Generate HTML
+# Generate HTML
 html_content = """
 <!DOCTYPE html>
 <html lang="en">
@@ -46,35 +47,49 @@ html_content = """
 <meta charset="UTF-8">
 <title>GNN CoRA Competition Leaderboard</title>
 <style>
-body {{
-    font-family: Arial, sans-serif; 
-    background: #f4f6f9; 
-    margin: 0; 
-    padding: 40px 0; 
+html, body {{
+    height: 100%;
+    margin: 0;
 }}
-h1 {{ text-align: center; margin-bottom: 40px; }}
+body {{
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}}
+h1 {{
+    text-align: center;
+    margin-bottom: 40px;
+    width: 100%;
+}}
 table {{
-    border-collapse: collapse; 
-    width: 85%; /* Make table wider */
-    margin: 0 auto; /* Center table */
-    background: white; 
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08); 
+    border-collapse: collapse;
+    width: 70%;
+    background: white;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    border: 2px solid #2c3e50;
 }}
 th, td {{
-    padding: 16px; 
-    text-align: center; 
-    border: 2px solid #2c3e50; /* Visible borders */
+    padding: 16px;
+    text-align: center;
+    border: 1px solid #2c3e50;  /* table cell borders */
 }}
-th {{ background-color: #2c3e50; color: white; font-size: 16px; }}
+th {{
+    background-color: #2c3e50;
+    color: white;
+    font-size: 16px;
+}}
 tr:nth-child(even) {{ background-color: #f8f9fa; }}
 td:first-child {{ font-weight: bold; font-size: 18px; }}
 .gold {{ background-color: #FFD700; font-weight: bold; }}
 .silver {{ background-color: #C0C0C0; font-weight: bold; }}
 .bronze {{ background-color: #CD7F32; color: white; font-weight: bold; }}
-@media (max-width: 768px) {{ table {{ width: 95%; }} }}
+@media (max-width: 768px) {{ table {{ width: 90%; }} }}
 </style>
 </head>
 <body>
+<div style="text-align:center; width: 100%;">
 <h1>🏆 GNN CoRA Competition Leaderboard</h1>
 <table>
 <thead>
@@ -82,7 +97,6 @@ td:first-child {{ font-weight: bold; font-size: 18px; }}
 </thead>
 <tbody>
 """
-
 for _, row in df.iterrows():
     rank_display = f"{row['Medal']} {row['Rank']}" if row['Medal'] else row['Rank']
     team = row["Team"]

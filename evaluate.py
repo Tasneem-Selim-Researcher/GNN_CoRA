@@ -43,12 +43,23 @@ new_entry = {
 }
 
 # Read existing leaderboard or create new
+# if os.path.exists(leaderboard_file):
+#     leaderboard = pd.read_csv(leaderboard_file)
+#     # Remove existing entry for this team
+#     leaderboard = leaderboard[leaderboard['Team'] != team_name]
+# else:
+#     leaderboard = pd.DataFrame(columns=['Team', 'Accuracy'])
+# Read existing leaderboard or create new
 if os.path.exists(leaderboard_file):
     leaderboard = pd.read_csv(leaderboard_file)
-    # Remove existing entry for this team
-    leaderboard = leaderboard[leaderboard['Team'] != team_name]
+
+    # 🔒 STRICT: Reject if user already submitted
+    if team_name in leaderboard['Team'].values:
+        print(f"User '{team_name}' already submitted. Only first submission allowed.")
+        sys.exit(1)
 else:
     leaderboard = pd.DataFrame(columns=['Team', 'Accuracy'])
+    
 
 # Add new entry
 leaderboard = pd.concat([leaderboard, pd.DataFrame([new_entry])], ignore_index=True)

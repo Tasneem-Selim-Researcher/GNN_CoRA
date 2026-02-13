@@ -4,8 +4,6 @@
 
 This repository hosts the **Cora Node Classification Challenge**, a graph machine learning competition based on the **Cora citation network**. Participants are required to design and train **Graph Neural Network (GNN)** models to classify scientific papers into research topics using node features and graph structure.
 
-The competition follows **standard academic evaluation protocols** used in benchmark GNN literature (e.g., Kipf & Welling, 2017).
-
 ## 🏆 Leaderboard
 - Leaderboard scores are automatically updated based on accuracy.
 - View the live leaderboard:  
@@ -30,7 +28,7 @@ Train a model that accurately predicts the class labels of **unlabeled test node
 
 ## 📊 Dataset Details
 
-⚠️ Note on Dataset Difficulty (Important)
+⚠️ Note on Dataset Difficulty
 
 To increase the difficulty level and encourage robust model design, controlled noise has been added to the dataset.
 
@@ -39,8 +37,6 @@ The provided dataset is NOT identical to the original Cora benchmark
 Participants must work with the provided files
 
 Replacing the data with the original Cora dataset is not allowed
-
-This design choice ensures a fair comparison between methods and evaluates the ability of models to generalize under noisy and imperfect real-world conditions.
 
 ## 📊 Dataset Details
 
@@ -61,7 +57,6 @@ The dataset is derived from the **Cora citation network**.
 
 ---
 
-
 ### Public Files:
 the dataset is hosted externally on **Google Drive**.
 
@@ -75,7 +70,6 @@ the dataset is hosted externally on **Google Drive**.
 ### Private Files:
 - Test_label → Hidden ground-truth data used for automatic evaluation  
 
-
 ---
 ## 📝 How to Submit Your Results
 
@@ -84,46 +78,18 @@ Follow the steps below to submit your predictions to the competition leaderboard
 ---
 
 ### Step 1: Fork the Repository
-1. Go to the competition repository: https://github.com/Tasneem-Selim-Researcher/GNN_CoRA 
-2. Click the **Fork** button (top-right corner)
-3. You will be automatically redirected to the **Create new fork** page
-4. Click **Create fork**
-5. Wait for the fork to be created
-
----
 
 ### Step 2: Navigate to Your Forked Repository
-After forking, you should be redirected to your own repository
-
-
----
 
 ### Step 3: Go to the Submission Folder
-1. Open the `submission/` folder inside your forked repository
-
----
 
 ### Step 4: Upload Your Submission File
-1. Click **Add file**
-2. Select **Upload files**
-3. Drag and drop your **CSV** submission file **OR** click **choose your files**
 
-📌 **File naming rule (mandatory):** **Example:** `Team9.csv`
-
----
+📌 **File naming rule (mandatory):** yourName **Example:** `MonaAli.csv`
 
 ### Step 5: Commit Your File
-1. Add a short commit message (e.g., `Add submission Team9`)
-2. Click **Commit changes**
-
----
 
 ### Step 6: Create a Pull Request
-1. After committing, GitHub will display:
-2. Click **1 commit ahead**
-3. Click **Create Pull Request** (you will be redirected to the *Open Pull Request* page)
-4. Add a clear title, for example: Team9
-5. Click **Create Pull Request**
 
 ✅ Your submission will be reviewed and evaluated, and the results will be added to the leaderboard.
 
@@ -132,7 +98,7 @@ After forking, you should be redirected to your own repository
 
 ## 📝 Submission Format
 
-Participants must submit a CSV file named **`xxx.csv`** with the following format:
+Participants must submit a CSV file named **`YourName.csv`** with the following format:
 
 ```csv
 id,target

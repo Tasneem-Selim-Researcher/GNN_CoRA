@@ -66,8 +66,10 @@ jobs:
           python evaluate.py "$FILE" "../private_data/test_labels_only.csv"
 
       - name: Generate leaderboard HTML
-        run: python generate_leaderboard_html.py    
-
+        run: |
+          cd main_repo
+          python generate_leaderboard_html.py
+          
       # 8️⃣ Commit updated leaderboard to main
       - name: Push leaderboard to main
         run: |

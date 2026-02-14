@@ -106,6 +106,8 @@ id,target
 
 ---
 
+Each GitHub user is allowed exactly one submission. Subsequent submissions will be automatically rejected
+
 ## 📈 Evaluation Metric
 
 Submissions are evaluated using:

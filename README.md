@@ -76,7 +76,7 @@ Follow the steps below to submit your predictions to the competition leaderboard
 
 ### Step 3: Go to the Submission Folder
 
-### Step 4: Prepare the submission .csv
+### Step 4: Prepare the submission .csv locally
 
 #### 📝 Submission Format
 
@@ -95,10 +95,8 @@ id,target
 * `id` must match the provided test node IDs
 * `target` must be an integer in `{0, 1, 2, 3, 4, 5, 6}`
 
----
 
-
-### Step 5: Encrypt Your Submission
+### Step 5: Encrypt Your Submission locally
 
 **Make sure you have:**
 
@@ -127,7 +125,7 @@ Upload these files to the submission folder in your forked repo
 
 ✅ Your submission will be reviewed and evaluated, and the results will be added to the leaderboard.
 
-Each participant is allowed **only for one submission**. Subsequent submissions will be automatically rejected
+**Only one submission** is allowed for each participant. Subsequent submissions will be automatically rejected
 
 ---
 

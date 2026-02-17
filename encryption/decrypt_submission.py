@@ -1,56 +1,57 @@
-import os
-import json
-import base64
 import sys
-from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives import padding as sym_padding
+from cryptography.hazmat.backends import default_backend
 
-if len(sys.argv) != 3:
-    print("Usage: python decrypt_submission.py input.enc output.csv")
-    sys.exit(1)
+def decrypt_file(encrypted_file, encrypted_key_file, output_file, private_key_file):
+    # Load RSA private key
+    with open(private_key_file, "rb") as f:
+        private_key = serialization.load_pem_private_key(
+            f.read(),
+            password=None,
+            backend=default_backend()
+        )
 
-input_file = sys.argv[1]
-output_file = sys.argv[2]
+    # Load encrypted AES key
+    with open(encrypted_key_file, "rb") as f:
+        encrypted_key = f.read()
 
-# Load private key from environment variable (GitHub Secret)
-private_key_pem = os.environ["PRIVATE_KEY"].encode()
-
-private_key = serialization.load_pem_private_key(
-    private_key_pem,
-    password=None,
-)
-
-# Load encrypted payload
-with open(input_file, "r") as f:
-    payload = json.load(f)
-
-encrypted_key = base64.b64decode(payload["encrypted_key"])
-iv = base64.b64decode(payload["iv"])
-ciphertext = base64.b64decode(payload["ciphertext"])
-
-# Decrypt AES key using RSA private key
-aes_key = private_key.decrypt(
-    encrypted_key,
-    padding.OAEP(
-        mgf=padding.MGF1(algorithm=hashes.SHA256()),
-        algorithm=hashes.SHA256(),
-        label=None
+    # Decrypt AES key
+    aes_key = private_key.decrypt(
+        encrypted_key,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
     )
-)
 
-# Decrypt CSV using AES
-cipher = Cipher(algorithms.AES(aes_key), modes.CBC(iv))
-decryptor = cipher.decryptor()
-padded_data = decryptor.update(ciphertext) + decryptor.finalize()
+    # Load encrypted file
+    with open(encrypted_file, "rb") as f:
+        file_data = f.read()
 
-# Remove padding
-unpadder = sym_padding.PKCS7(128).unpadder()
-data = unpadder.update(padded_data) + unpadder.finalize()
+    iv = file_data[:16]
+    encrypted_data = file_data[16:]
 
-# Save decrypted file
-with open(output_file, "wb") as f:
-    f.write(data)
+    # Decrypt AES
+    cipher = Cipher(algorithms.AES(aes_key), modes.CBC(iv), backend=default_backend())
+    decryptor = cipher.decryptor()
+    padded_data = decryptor.update(encrypted_data) + decryptor.finalize()
 
-print("Decryption successful →", output_file)
+    # Remove padding
+    padding_length = padded_data[-1]
+    data = padded_data[:-padding_length]
+
+    # Save decrypted file
+    with open(output_file, "wb") as f:
+        f.write(data)
+
+    print("Decryption successful!")
+
+if __name__ == "__main__":
+    if len(sys.argv) != 5:
+        print("Usage: python decrypt.py input.enc input.enc.key output.csv private_key.pem")
+        sys.exit(1)
+
+    decrypt_file(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])

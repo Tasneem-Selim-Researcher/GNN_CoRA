@@ -4,7 +4,6 @@ on:
   pull_request_target:
     types: [opened, synchronize]
     paths:
-      # - "submission/*.csv"
       - "submission/*.enc"
 
 permissions:
@@ -17,8 +16,8 @@ jobs:
 
     steps:
       # 1️⃣ Debug trigger
-      - name: Debug 
-        run: echo Triggered for PR ${{ github.event.pull_request.number }}
+      - name: Debug
+        run: echo "Triggered for PR #${{ github.event.pull_request.number }}"
 
       # 2️⃣ Checkout PR branch (submission only)
       - name: Checkout PR branch
@@ -35,7 +34,7 @@ jobs:
           ref: main
           path: main_repo
           fetch-depth: 0
-      
+
       # 4️⃣ Checkout private repo (true labels)
       - name: Checkout private repo
         uses: actions/checkout@v4
@@ -51,58 +50,61 @@ jobs:
           python-version: "3.10"
 
       - name: Install dependencies
-        # run: pip install pandas scikit-learn numpy
         run: pip install pandas scikit-learn numpy cryptography
 
-      # 6️⃣ Copy submission into main repo workspace
-      # - name: Copy submission file
-      #   run: |
-      #     cp pr_repo/submission/*.csv main_repo/submission/
+      # 6️⃣ Copy encrypted submission from PR branch
       - name: Copy encrypted submission
         run: |
-            cp pr_repo/submission/*.enc main_repo/
+          cp pr_repo/submission/*.enc main_repo/
 
-      # 7️⃣ Run evaluation using MAIN leaderboard
-      # - name: Evaluate submission
-      #   run: |
-      #     cd main_repo
-      #     FILE=$(ls submission/*.csv | tail -n 1)
-      #     echo "Evaluating $FILE"
-      #     python evaluate.py "$FILE" "../private_data/test_labels_only.csv"
-
-      - name: Decrypt submission
+      # 7️⃣ Create private key file from GitHub Secret
+      - name: Create private key file
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
         run: |
-            cd main_repo
-            FILE=$(ls *.enc | tail -n 1)
-            echo "Decrypting $FILE"
-            python encryption/decrypt_submission.py "$FILE" decrypted_submission.csv
+          cd main_repo
+          echo "$PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
 
+      # 8️⃣ Decrypt submission
+      - name: Decrypt submission
+        run: |
+          cd main_repo
+          ENC_FILE=$(ls *.enc | tail -n 1)
+          KEY_FILE="$ENC_FILE.key"
+          echo "Decrypting $ENC_FILE with key $KEY_FILE"
+          python encryption/decrypt_submission.py "$ENC_FILE" "$KEY_FILE" decrypted_submission.csv private_key.pem
+
+      # 9️⃣ Evaluate decrypted submission
       - name: Evaluate submission
         run: |
-            cd main_repo
-            echo "Evaluating decrypted_submission.csv"
-            python evaluate.py decrypted_submission.csv "../private_data/test_labels_only.csv"
+          cd main_repo
+          echo "Evaluating decrypted_submission.csv"
+          python evaluate.py decrypted_submission.csv "../private_data/test_labels_only.csv"
 
+      # 🔟 Generate leaderboard HTML
       - name: Generate leaderboard HTML
         run: |
           cd main_repo
           python generate_leaderboard_html.py
-          
-      # 8️⃣ Commit updated leaderboard to main
+
+      # 1️⃣1️⃣ Commit updated leaderboard to main
       - name: Push leaderboard to main
         run: |
           cd main_repo
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-
           git add final_leaderboard.csv final_leaderboard.html
-
           if ! git diff --cached --quiet; then
             git commit -m "Update leaderboard from PR #${{ github.event.pull_request.number }}"
             git pull --rebase origin main
             git push origin HEAD:main
           else
             echo "No leaderboard changes to commit"
-          fi
+
+      # 1️⃣2️⃣ Clean up sensitive files
+      - name: Clean up decrypted files
+        run: |
+          cd main_repo
+          rm -f decrypted_submission.csv
+          rm -f private_key.pem

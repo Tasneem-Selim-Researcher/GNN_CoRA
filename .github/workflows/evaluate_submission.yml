@@ -4,7 +4,8 @@ on:
   pull_request_target:
     types: [opened, synchronize]
     paths:
-      - "submission/*.csv"
+      # - "submission/*.csv"
+      - "submission/*.enc"
 
 permissions:
   contents: write
@@ -50,20 +51,39 @@ jobs:
           python-version: "3.10"
 
       - name: Install dependencies
-        run: pip install pandas scikit-learn numpy
+        # run: pip install pandas scikit-learn numpy
+        run: pip install pandas scikit-learn numpy cryptography
 
       # 6️⃣ Copy submission into main repo workspace
-      - name: Copy submission file
+      # - name: Copy submission file
+      #   run: |
+      #     cp pr_repo/submission/*.csv main_repo/submission/
+      - name: Copy encrypted submission
         run: |
-          cp pr_repo/submission/*.csv main_repo/submission/
+            cp pr_repo/submission/*.enc main_repo/
 
       # 7️⃣ Run evaluation using MAIN leaderboard
+      # - name: Evaluate submission
+      #   run: |
+      #     cd main_repo
+      #     FILE=$(ls submission/*.csv | tail -n 1)
+      #     echo "Evaluating $FILE"
+      #     python evaluate.py "$FILE" "../private_data/test_labels_only.csv"
+
+      - name: Decrypt submission
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        run: |
+            cd main_repo
+            FILE=$(ls *.enc | tail -n 1)
+            echo "Decrypting $FILE"
+            python encryption/decrypt_submission.py "$FILE" decrypted_submission.csv
+
       - name: Evaluate submission
         run: |
-          cd main_repo
-          FILE=$(ls submission/*.csv | tail -n 1)
-          echo "Evaluating $FILE"
-          python evaluate.py "$FILE" "../private_data/test_labels_only.csv"
+            cd main_repo
+            echo "Evaluating decrypted_submission.csv"
+            python evaluate.py decrypted_submission.csv "../private_data/test_labels_only.csv"
 
       - name: Generate leaderboard HTML
         run: |

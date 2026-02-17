@@ -76,22 +76,11 @@ Follow the steps below to submit your predictions to the competition leaderboard
 
 #### Step 3: Go to the Submission Folder
 
-#### Step 4: Upload Your Submission File
+#### Step 4: Prepare the submission .csv
 
-#### Step 5: Commit Your File
+##### 📝 Submission Format
 
-#### Step 6: Create a Pull Request
-
-✅ Your submission will be reviewed and evaluated, and the results will be added to the leaderboard.
-
-Each participant is allowed **only for one submission**. Subsequent submissions will be automatically rejected
-
----
-
-
-## 📝 Submission Format
-
-Participants must submit a CSV file named **`YourName.csv`** with the following format:
+Participants must submit a CSV file named **`submission.csv`** with the following format:
 
 ```csv
 id,target
@@ -107,6 +96,47 @@ id,target
 * `target` must be an integer in `{0, 1, 2, 3, 4, 5, 6}`
 
 ---
+
+
+#### Step 5: Encrypt Your Submission
+
+Make sure you have:
+
+encrypt_submission.py
+
+public_key.pem
+
+Your CSV file submission.csv
+
+Open CMD/terminal in the folder containing these files.
+
+Run the command:
+
+python encrypt_submission.py submission.csv submission.enc public_key.pem
+
+This will generate two files:
+
+YourName.enc → the encrypted submission
+
+YourName.enc.key → encryption key
+
+Both files are required for submission. Do not submit the original CSV.
+
+
+#### Step 6: Place Encrypted Files in Submission Folder
+
+Upload these files to the submission folder in your forked repo
+
+#### Step 7: Create a Pull Request
+
+✅ Your submission will be reviewed and evaluated, and the results will be added to the leaderboard.
+
+Each participant is allowed **only for one submission**. Subsequent submissions will be automatically rejected
+
+---
+
+
+
 
 
 ## 📈 Evaluation Metric
